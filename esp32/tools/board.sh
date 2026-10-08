@@ -19,6 +19,8 @@
 # Usage: board.sh BOARD [build|flash|monitor|flash-monitor] [PORT]
 #
 #   devkit     ESP32-C5 DevKitC-1 (status LED, no display)
+#   seeed-xiao-c5
+#              Seeed XIAO ESP32-C5 (yellow user LED, no display)
 #   ideaspark  ideaspark ESP32 with a 1.9 inch ST7789 display
 #   sensecap-indicator
 #              Seeed SenseCAP Indicator (ESP32-S3) with a 4 inch display
@@ -40,7 +42,7 @@
 # matching serial port, if there is exactly one.
 set -euo pipefail
 
-usage() { sed -n '16,38p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
+usage() { sed -n '16,40p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
 
 [ $# -ge 1 ] || usage 2
 case "$1" in -h|--help) usage ;; esac
@@ -55,6 +57,12 @@ DEFAULTS="sdkconfig.defaults"
 case "$BOARD" in
   devkit)
     TARGET=esp32c5
+    PORTS="/dev/cu.usbmodem* /dev/ttyACM*"
+    ;;
+  seeed-xiao-c5)
+    TARGET=esp32c5
+    DEFAULTS="$DEFAULTS;devices/sdkconfig.$BOARD"
+    # The C5's own USB-Serial-JTAG, which looks like a DevKitC-1's.
     PORTS="/dev/cu.usbmodem* /dev/ttyACM*"
     ;;
   c6-nopsram)

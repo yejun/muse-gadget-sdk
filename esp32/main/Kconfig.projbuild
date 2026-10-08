@@ -182,6 +182,9 @@ menu "ESP32 Device SDK"
         config HOMEHUB_LED_BACKEND_DEVKIT_GPIO27
             bool "Addressable RGB LED (ESP32-C5 DevKitC-1 GPIO27 by default)"
 
+        config HOMEHUB_LED_BACKEND_MONO_GPIO
+            bool "Single-colour PWM LED (Seeed XIAO ESP32-C5 GPIO27)"
+
         config HOMEHUB_LED_BACKEND_IDEASPARK_ST7789
             bool "ideaspark ESP32 1.9 inch ST7789 display (status bars)"
 
@@ -236,6 +239,26 @@ menu "ESP32 Device SDK"
             GPIO driving the single addressable status LED. The ESP32-C5
             DevKitC-1 uses GPIO27. The build stops if the pin is one the chip
             uses for its SPI flash or PSRAM.
+
+    config HOMEHUB_LED_MONO_GPIO
+        int "Single-colour LED GPIO"
+        depends on HOMEHUB_LED_BACKEND_MONO_GPIO
+        range 0 28 if IDF_TARGET_ESP32C5
+        range 0 48
+        default 27
+        help
+            GPIO driving a plain single-colour status LED, such as the yellow
+            user LED on GPIO27 of the Seeed XIAO ESP32-C5. The LED can't show
+            colours, so each state shows as its brightness and its breathing
+            or blinking pattern.
+
+    config HOMEHUB_LED_MONO_ACTIVE_LOW
+        bool "Single-colour LED lights when the GPIO is low"
+        depends on HOMEHUB_LED_BACKEND_MONO_GPIO
+        default y
+        help
+            Seeed XIAO user LEDs are wired from 3V3 to the GPIO, so they light
+            when it's driven low. Turn this off for an LED wired to ground.
 
     config HOMEHUB_DISPLAY
         bool

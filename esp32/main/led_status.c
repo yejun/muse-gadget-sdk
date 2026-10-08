@@ -28,7 +28,7 @@
 #include "esp_err.h"
 #include "esp_timer.h"
 
-#if CONFIG_HOMEHUB_LED_BACKEND_PWM_RGB
+#if CONFIG_HOMEHUB_LED_BACKEND_PWM_RGB || CONFIG_HOMEHUB_LED_BACKEND_MONO_GPIO
 #include "driver/ledc.h"
 #elif CONFIG_HOMEHUB_LED_BACKEND_DEVKIT_GPIO27
 #include "led_strip.h"
@@ -70,6 +70,19 @@ static const char *TAG = "link.led";
 #define LED_B_GPIO   6
 #endif
 #define LED_PWM_MODE LEDC_LOW_SPEED_MODE
+#define LED_PWM_TIMER LEDC_TIMER_0
+#define LED_PWM_FREQ  5000
+#define LED_PWM_RES   LEDC_TIMER_8_BIT
+#elif CONFIG_HOMEHUB_LED_BACKEND_MONO_GPIO
+// Single-colour LED (the yellow user LED on GPIO27 of the Seeed XIAO
+// ESP32-C5), driven via LEDC PWM. Colours map to brightness.
+#define LED_MONO_GPIO CONFIG_HOMEHUB_LED_MONO_GPIO
+#if CONFIG_HOMEHUB_LED_MONO_ACTIVE_LOW
+#define LED_MONO_ACTIVE_LOW 1
+#else
+#define LED_MONO_ACTIVE_LOW 0
+#endif
+#define LED_PWM_MODE  LEDC_LOW_SPEED_MODE
 #define LED_PWM_TIMER LEDC_TIMER_0
 #define LED_PWM_FREQ  5000
 #define LED_PWM_RES   LEDC_TIMER_8_BIT
@@ -284,6 +297,51 @@ static bool led_hw_init(void) {
 
     ESP_LOGI(TAG, "LED status ready: " CONFIG_GADGET_PRODUCT_NAME " PWM RGB (R=%d G=%d B=%d)",
              LED_R_GPIO, LED_G_GPIO, LED_B_GPIO);
+    return true;
+}
+#elif CONFIG_HOMEHUB_LED_BACKEND_MONO_GPIO
+static void led_hw_set_color(rgb_t c) {
+    // The status colours peak at 80, so scale the brightest channel to full.
+    uint32_t level = c.r > c.g ? c.r : c.g;
+    if (c.b > level) level = c.b;
+    level = level * 3 > 255 ? 255 : level * 3;
+    ledc_set_duty(LED_PWM_MODE, LEDC_CHANNEL_0, level);
+    ledc_update_duty(LED_PWM_MODE, LEDC_CHANNEL_0);
+}
+
+static bool led_hw_init(void) {
+    ledc_timer_config_t timer_cfg = {
+        .speed_mode = LED_PWM_MODE,
+        .duty_resolution = LED_PWM_RES,
+        .timer_num = LED_PWM_TIMER,
+        .freq_hz = LED_PWM_FREQ,
+        .clk_cfg = LEDC_AUTO_CLK,
+    };
+    if (ledc_timer_config(&timer_cfg) != ESP_OK) {
+        ESP_LOGE(TAG, "LEDC timer init failed");
+        return false;
+    }
+
+    ledc_channel_config_t cfg = {
+        .gpio_num = LED_MONO_GPIO,
+        .speed_mode = LED_PWM_MODE,
+        .channel = LEDC_CHANNEL_0,
+        .intr_type = LEDC_INTR_DISABLE,
+        .timer_sel = LED_PWM_TIMER,
+        .duty = 0,
+        .hpoint = 0,
+        .sleep_mode = LEDC_SLEEP_MODE_NO_ALIVE_NO_PD,
+        .flags = {
+            .output_invert = LED_MONO_ACTIVE_LOW,
+        },
+    };
+    if (ledc_channel_config(&cfg) != ESP_OK) {
+        ESP_LOGE(TAG, "LEDC channel init failed");
+        return false;
+    }
+
+    ESP_LOGI(TAG, "LED status ready: single-colour PWM (GPIO=%d, active %s)",
+             LED_MONO_GPIO, LED_MONO_ACTIVE_LOW ? "low" : "high");
     return true;
 }
 #elif CONFIG_HOMEHUB_LED_BACKEND_DEVKIT_GPIO27

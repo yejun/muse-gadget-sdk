@@ -46,6 +46,7 @@ before adding a feature to one.
 | Board | Target | Overlay(s) after `sdkconfig.defaults` | Helper |
 |---|---|---|---|
 | ESP32-C5 DevKitC-1 (default) | `esp32c5` | none | `tools/board.sh devkit` |
+| Seeed XIAO ESP32-C5 | `esp32c5` | `devices/sdkconfig.seeed-xiao-c5` | `tools/board.sh seeed-xiao-c5` |
 | ESP32-C6 devkit without PSRAM | `esp32c6` | `devices/sdkconfig.c6-nopsram` | `tools/board.sh c6-nopsram` |
 | Espressif ESP32-S3-DevKitC-1 v1.1 (N8R8) | `esp32s3` | `devices/sdkconfig.espressif-s3-devkitc-1` | `tools/board.sh espressif-s3-devkitc-1` |
 | ideaspark ESP32 + 1.9" ST7789 | `esp32` | `devices/sdkconfig.ideaspark` | `tools/board.sh ideaspark` |
@@ -219,7 +220,8 @@ flash size and status backend.
    python -m esptool -p PORT chip-id      # read-mac for the MAC
    ```
 
-   The target narrows it a long way: `esp32c5` is the DevKitC-1, `esp32c6` the
+   The target narrows it a long way: `esp32c5` is the DevKitC-1 or the XIAO
+   ESP32-C5 (the XIAO has a yellow LED rather than an RGB one), `esp32c6` the
    Waveshare C6 or a C6 devkit, `esp32` the ideaspark or the StickC Plus2.
 
 4. **Fall back to a read-only capture.** If the board is mid-run and you can't

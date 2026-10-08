@@ -164,6 +164,7 @@ status screen.
 | Board | What you get | Build it |
 |---|---|---|
 | ESP32-C5 DevKitC-1 | Status light and button | `idf.py build` |
+| Seeed XIAO ESP32-C5 | Status on its yellow LED, and button | `tools/board.sh seeed-xiao-c5 build` |
 | ESP32-C6 devkit without PSRAM | Status light and button | `tools/board.sh c6-nopsram build` |
 | Espressif ESP32-S3-DevKitC-1 | Status light and button | `tools/board.sh espressif-s3-devkitc-1 build` |
 | ideaspark ESP32 with 1.9" display | Status on screen, images | `tools/board.sh ideaspark build` |
